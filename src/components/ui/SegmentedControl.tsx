@@ -10,8 +10,8 @@ interface SegmentedControlProps<T extends string> {
   label: string;
   name: string;
   options: readonly SegmentedOption<T>[];
-  /** Controlled; leave out and use `defaultValue` for an uncontrolled group */
-  value?: T;
+  /** Controlled, `''` for nothing chosen yet; leave out and use `defaultValue` for an uncontrolled group */
+  value?: T | '';
   defaultValue?: T;
   onChange?: (value: T) => void;
   required?: boolean;

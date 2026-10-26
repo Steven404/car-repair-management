@@ -170,7 +170,9 @@ VIN and plate are unique **per mechanic**, so two mechanics can both service the
 ## Search
 
 The vehicle list page loads all of the mechanic's vehicles in one query (with each one's repair count from
-a single grouped join, not one query per car) and filters them in the browser as the mechanic types.
+a single grouped join, not one query per car) and filters them in the browser as the mechanic types. The
+list is ordered by most recent activity: the latest repair's date, or the day the car was added if it has
+none.
 
 **Why in the browser:** at 200 cars the list is roughly 40 KB of JSON before compression, and filtering it
 takes well under a millisecond per keystroke, so there is no debounce and no server round trip. Even
@@ -202,6 +204,21 @@ Matches are highlighted in all four fields on the card, the plate badge included
 **URL:** the query is kept in `?q=` with `window.history.replaceState`. Next keeps `useSearchParams` in sync
 with it without refetching the page, and back/refresh restore the search. The server reads `q` too, so the
 first render is already filtered.
+
+## Forms
+
+Two Next 16 / React 19 behaviours shape the vehicle and repair forms:
+
+- **Pages stay mounted after you leave them** (Cache Components keeps them hidden, with their state). So a
+  successful save returns the new id instead of redirecting from the server; the form resets itself and
+  then navigates. Otherwise "Νέο όχημα" would reopen showing the previous car. The edit form is keyed by
+  the vehicle's `updatedAt`, so after a save it starts from the saved values.
+- **React resets a `<form action={…}>` after every submission.** Controlled text inputs survive that, but
+  controlled radios (the fuel choice) end up unchecked while their state still says diesel or petrol. The
+  vehicle form therefore submits through `onSubmit` + `startTransition` instead of `action`. The login
+  form keeps `action`: it is uncontrolled, and clearing the password after a failed attempt is wanted.
+
+Server-side errors appear under their fields, and the cursor moves to the first field with an error.
 
 ## Project structure
 
@@ -246,20 +263,23 @@ src/
       validation.ts
     vehicles/
       components/
-        VehicleList.tsx                 search field + results + empty states (client)
+        Vehicles.tsx                    loads the list (server) + its loading fallback
+        VehicleList.tsx                 title, search, results, empty states (client)
         VehicleCard.tsx  PlateBadge.tsx  FuelBadge.tsx
         VehicleForm.tsx  CardPreview.tsx
-        VehicleSummary.tsx  VehicleDetails.tsx
-        DeleteVehicleDialog.tsx
-      actions.ts  queries.ts  validation.ts  types.ts
-      utils/plate.ts  utils/vin.ts  utils/search.ts
+        VehicleSummary.tsx  VehicleDetails.tsx  VehicleFallbacks.tsx
+        DeleteVehicleSection.tsx
+      actions.ts                        Server Actions: parse the form, call a mutation
+      queries.ts  mutations.ts          server-only reads and writes, mechanic from requireUser()
+      validation.ts  labels.ts          Zod schema; Greek labels and display helpers
+      utils/plate.ts  utils/vin.ts  utils/displacement.ts  utils/search.ts
     repairs/
       components/
         RepairEditor.tsx  EditorToolbar.tsx   Tiptap (client)
         RepairNotes.tsx                 static render of the stored JSON (server)
         RepairList.tsx  RepairCard.tsx  DateBlock.tsx
         RepairForm.tsx  DeleteRepairDialog.tsx
-      actions.ts  queries.ts  validation.ts  types.ts
+      actions.ts  queries.ts  mutations.ts  validation.ts
       utils/mileage.ts
 
   lib/                                  infrastructure shared by features

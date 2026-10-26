@@ -1,6 +1,6 @@
-import type { FormHTMLAttributes, ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
-interface FormCardProps extends FormHTMLAttributes<HTMLFormElement> {
+interface FormCardProps extends ComponentProps<'form'> {
   /** A grey strip above the fields, e.g. the vehicle a repair is for */
   header?: ReactNode;
   /** The grey action bar at the bottom: Ακύρωση + the save button */
