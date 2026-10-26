@@ -12,7 +12,12 @@ export function parseMileage(input: string): number | null | undefined {
   return km <= MAX_MILEAGE_KM ? km : undefined;
 }
 
-/** "186.400 km", grouped the Greek way */
+/** "186.400", grouped the Greek way; parseMileage reads it back */
+export function groupDigits(km: number): string {
+  return new Intl.NumberFormat('el-GR').format(km);
+}
+
+/** "186.400 km" */
 export function formatMileage(km: number): string {
-  return `${new Intl.NumberFormat('el-GR').format(km)} km`;
+  return `${groupDigits(km)} km`;
 }

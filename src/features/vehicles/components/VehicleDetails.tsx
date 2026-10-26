@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { cardClasses } from '@/components/ui/Card';
 import type { Vehicle } from '@/lib/db/schema';
 import { FUEL_LABELS, engineLabel } from '../labels';
@@ -18,9 +18,10 @@ const row = 'flex gap-4 border-b border-line-soft py-3 last:border-b-0';
 
 /** The "Στοιχεία οχήματος" panel: everything stored about the car, the VIN included. */
 export function VehicleDetails({ vehicle, className = '' }: { vehicle: Vehicle; className?: string }) {
+  const titleId = useId();
   return (
-    <section aria-labelledby="details-title" className={`${cardClasses} flex flex-col ${className}`}>
-      <h2 id="details-title" className="border-b border-line-soft px-6 py-5 text-[17px] font-bold">
+    <section aria-labelledby={titleId} className={`${cardClasses} flex flex-col ${className}`}>
+      <h2 id={titleId} className="border-b border-line-soft px-6 py-5 text-[17px] font-bold">
         Στοιχεία οχήματος
       </h2>
       <dl className="flex flex-col px-6 pt-2 pb-4">

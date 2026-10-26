@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode } from 'react';
+import { useId, type InputHTMLAttributes, type ReactNode } from 'react';
 import { FieldLabel } from './FieldLabel';
 import { errorClasses, hintClasses, inputClasses } from './fieldStyles';
 
@@ -17,11 +17,15 @@ interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'cl
   className?: string;
 }
 
-/** A labelled input with an optional hint and error message under it. */
+/**
+ * A labelled input with an optional hint and error message under it. Its ids
+ * are unique per instance (useId): Next keeps pages mounted but hidden after
+ * you leave them, so the same form can be in the document twice.
+ */
 export function TextField({
   label,
   name,
-  id = name,
+  id: idProp,
   hint,
   error,
   optional,
@@ -31,6 +35,8 @@ export function TextField({
   className = '',
   ...props
 }: TextFieldProps) {
+  const generatedId = useId();
+  const id = idProp ?? generatedId;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [errorId, hintId].filter(Boolean).join(' ') || undefined;

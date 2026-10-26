@@ -1,14 +1,16 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { startTransition, useActionState, useEffect, useRef, useState, type ReactNode } from 'react';
+import { startTransition, useActionState, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { FormCard, FormSection } from '@/components/layout/FormCard';
 import { Button } from '@/components/ui/Button';
 import { ButtonLink } from '@/components/ui/ButtonLink';
 import { FieldLabel } from '@/components/ui/FieldLabel';
 import { TextField } from '@/components/ui/TextField';
 import type { Repair, RichTextDoc } from '@/lib/db/schema';
+import { SAVE_FAILED_MESSAGE } from '@/lib/forms';
 import { createRepairAction, updateRepairAction, type RepairFormState } from '../actions';
+import { groupDigits } from '../utils/mileage';
 import { RepairEditor } from './RepairEditor';
 
 const EMPTY_NOTES: RichTextDoc = { type: 'doc', content: [{ type: 'paragraph' }] };
@@ -27,11 +29,12 @@ interface RepairFormProps {
 export function RepairForm({ vehicleId, vehicleStrip, repair, defaultDate }: RepairFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const notesLabelId = useId();
   const vehicleHref = `/vehicles/${vehicleId}`;
 
   const initial = {
     performedOn: repair?.performedOn ?? defaultDate,
-    mileageKm: repair?.mileageKm?.toString() ?? '',
+    mileageKm: repair?.mileageKm != null ? groupDigits(repair.mileageKm) : '',
     notes: repair?.notes ?? EMPTY_NOTES,
   };
   const [performedOn, setPerformedOn] = useState(initial.performedOn);
@@ -41,9 +44,16 @@ export function RepairForm({ vehicleId, vehicleStrip, repair, defaultDate }: Rep
   const [editorKey, setEditorKey] = useState(0);
 
   const [state, formAction, pending] = useActionState(async (previous: RepairFormState, formData: FormData) => {
-    const next = repair
-      ? await updateRepairAction(vehicleId, repair.id, previous, formData)
-      : await createRepairAction(vehicleId, previous, formData);
+    let next: RepairFormState | undefined;
+    try {
+      next = repair
+        ? await updateRepairAction(vehicleId, repair.id, previous, formData)
+        : await createRepairAction(vehicleId, previous, formData);
+    } catch {
+      return { error: SAVE_FAILED_MESSAGE };
+    }
+    // Nothing comes back when the action redirected (a session that has expired)
+    if (!next) return previous;
     if (next.savedId) {
       // This page stays mounted after we leave it (plan, Forms): start the next repair blank
       if (!repair) {
@@ -121,13 +131,13 @@ export function RepairForm({ vehicleId, vehicleStrip, repair, defaultDate }: Rep
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <FieldLabel as="span" id="notes-label" required>
+          <FieldLabel as="span" id={notesLabelId} required>
             Τι έγινε
           </FieldLabel>
           <input type="hidden" name="notes" value={JSON.stringify(notes)} />
           <RepairEditor
             key={editorKey}
-            labelId="notes-label"
+            labelId={notesLabelId}
             initialContent={initial.notes}
             onChange={setNotes}
             error={errors.notes}

@@ -6,6 +6,9 @@ const WIDTHS = {
   narrow: 'max-w-[920px]',
 };
 
+/** The skip link's target (SkipLink) */
+export const MAIN_ID = 'main';
+
 interface PageContainerProps {
   width?: keyof typeof WIDTHS;
   className?: string;
@@ -16,7 +19,10 @@ interface PageContainerProps {
 export function PageContainer({ width = 'wide', className = '', children }: PageContainerProps) {
   return (
     <main
-      className={`mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-16 sm:px-8 sm:pt-8 ${WIDTHS[width]} ${className}`}
+      id={MAIN_ID}
+      // Focusable from the skip link, without drawing a ring round the whole page
+      tabIndex={-1}
+      className={`mx-auto flex w-full flex-col gap-6 px-4 pt-6 pb-16 outline-none sm:px-8 sm:pt-8 ${WIDTHS[width]} ${className}`}
     >
       {children}
     </main>

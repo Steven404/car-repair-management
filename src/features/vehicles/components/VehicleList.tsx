@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CarFront, Plus, SearchX } from 'lucide-react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -35,6 +35,7 @@ function countLabel(shown: number, total: number, searching: boolean): string {
 export function VehicleList({ vehicles }: { vehicles: VehicleListItem[] }) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const searchables = useMemo(() => vehicles.map(makeSearchable), [vehicles]);
   const results = useMemo(() => search(searchables, query), [searchables, query]);
@@ -66,7 +67,7 @@ export function VehicleList({ vehicles }: { vehicles: VehicleListItem[] }) {
       ) : (
         <>
           <SearchField
-            id="vehicle-search"
+            inputRef={searchRef}
             label="Αναζήτηση"
             value={query}
             onChange={changeQuery}
@@ -99,7 +100,14 @@ export function VehicleList({ vehicles }: { vehicles: VehicleListItem[] }) {
               title={`Δεν βρέθηκαν οχήματα για «${query.trim()}»`}
               description="Δοκιμάστε άλλη μάρκα, μοντέλο, πινακίδα ή ιδιοκτήτη."
               action={
-                <Button variant="secondary" onClick={() => changeQuery('')}>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    changeQuery('');
+                    // This button goes with the empty state: carry on from the search field
+                    searchRef.current?.focus();
+                  }}
+                >
                   Καθαρισμός αναζήτησης
                 </Button>
               }

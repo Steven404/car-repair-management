@@ -220,6 +220,15 @@ Two Next 16 / React 19 behaviours shape the vehicle and repair forms:
 
 Server-side errors appear under their fields, and the cursor moves to the first field with an error.
 
+**Ids are unique per instance.** The hidden pages stay in the document, so a fixed `id` (a field's, a
+heading's) can appear twice, and a visible label could point at a hidden copy. Components use `useId()`;
+async server components, which can't, build ids from the car's id (`history-title-<vehicleId>`). Only
+`<main id="main">` repeats, and the skip link looks for the visible `<main>` itself.
+
+**When a save can't reach the server** (no signal in the garage), the form or dialog says so ("Δεν
+αποθηκεύτηκε / Δεν διαγράφηκε. Ελέγξτε τη σύνδεση…") and keeps what was typed. Pages that fail to load
+show `error.tsx`, inside the app with the header and a "Δοκιμάστε ξανά" button.
+
 ## Project structure
 
 Feature-based. `app/` holds routes only: each `page.tsx` is thin, checks the session and composes feature

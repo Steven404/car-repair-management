@@ -1,13 +1,23 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { startTransition, useActionState, useEffect, useRef, useState, type ChangeEvent, type ReactNode } from 'react';
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ReactNode,
+} from 'react';
 import { FormCard, FormSection } from '@/components/layout/FormCard';
 import { Button } from '@/components/ui/Button';
 import { ButtonLink } from '@/components/ui/ButtonLink';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { TextField } from '@/components/ui/TextField';
 import type { Fuel, Vehicle } from '@/lib/db/schema';
+import { SAVE_FAILED_MESSAGE } from '@/lib/forms';
 import { createVehicleAction, updateVehicleAction, type VehicleFormState } from '../actions';
 import { COMMON_BRANDS, FUEL_OPTIONS } from '../labels';
 import type { VehicleField } from '../validation';
@@ -47,12 +57,20 @@ interface VehicleFormProps {
 export function VehicleForm({ vehicle, cancelHref, children }: VehicleFormProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
+  const brandListId = useId();
   const [values, setValues] = useState<Values>(() => (vehicle ? { ...EMPTY, ...pick(vehicle) } : EMPTY));
 
   const [state, formAction, pending] = useActionState(async (previous: VehicleFormState, formData: FormData) => {
-    const next = vehicle
-      ? await updateVehicleAction(vehicle.id, previous, formData)
-      : await createVehicleAction(previous, formData);
+    let next: VehicleFormState | undefined;
+    try {
+      next = vehicle
+        ? await updateVehicleAction(vehicle.id, previous, formData)
+        : await createVehicleAction(previous, formData);
+    } catch {
+      return { error: SAVE_FAILED_MESSAGE };
+    }
+    // Nothing comes back when the action redirected (a session that has expired)
+    if (!next) return previous;
     if (next.savedId) {
       // Next keeps this page mounted after we leave it; a new-vehicle form
       // should be empty when the mechanic comes back, not show the last car
@@ -143,7 +161,7 @@ export function VehicleForm({ vehicle, cancelHref, children }: VehicleFormProps)
                 label="Μάρκα"
                 name="brand"
                 required
-                list="brand-list"
+                list={brandListId}
                 autoComplete="off"
                 placeholder="π.χ. Volkswagen"
                 value={values.brand}
@@ -151,7 +169,7 @@ export function VehicleForm({ vehicle, cancelHref, children }: VehicleFormProps)
                 error={errors.brand}
                 className="flex-[1_1_240px]"
               />
-              <datalist id="brand-list">
+              <datalist id={brandListId}>
                 {COMMON_BRANDS.map((brand) => (
                   <option key={brand} value={brand} />
                 ))}

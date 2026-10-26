@@ -9,3 +9,9 @@ export function fieldErrors<T>(error: z.ZodError<T>): Partial<Record<keyof T & s
   }
   return errors as Partial<Record<keyof T & string, string>>;
 }
+
+// When a Server Action can't be reached at all (no signal in the garage,
+// say), the form or dialog says so and keeps what was typed, rather than the
+// page giving way to the error screen.
+export const SAVE_FAILED_MESSAGE = 'Δεν αποθηκεύτηκε. Ελέγξτε τη σύνδεση στο ίντερνετ και δοκιμάστε ξανά.';
+export const DELETE_FAILED_MESSAGE = 'Δεν διαγράφηκε. Ελέγξτε τη σύνδεση στο ίντερνετ και δοκιμάστε ξανά.';

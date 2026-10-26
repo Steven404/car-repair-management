@@ -36,7 +36,7 @@ async function VehicleContent({ params }: Pick<PageProps<'/vehicles/[id]'>, 'par
       {/* On a phone the history comes first: it's what the mechanic is checking */}
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(300px,380px)_minmax(0,1fr)]">
         <VehicleDetails vehicle={vehicle} className="order-last lg:order-none" />
-        <Suspense fallback={<RepairHistoryFallback />}>
+        <Suspense fallback={<RepairHistoryFallback vehicleId={vehicle.id} />}>
           <RepairHistory vehicleId={vehicle.id} />
         </Suspense>
       </div>

@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { FieldLabel } from './FieldLabel';
 import { errorClasses } from './fieldStyles';
 
@@ -34,10 +35,10 @@ export function SegmentedControl<T extends string>({
   error,
   className = '',
 }: SegmentedControlProps<T>) {
-  const errorId = error ? `${name}-error` : undefined;
+  const errorId = `${useId()}-error`;
 
   return (
-    <fieldset aria-describedby={errorId} className={`flex min-w-0 flex-col ${className}`}>
+    <fieldset aria-describedby={error ? errorId : undefined} className={`flex min-w-0 flex-col ${className}`}>
       <FieldLabel as="legend" required={required} className="mb-1.5">
         {label}
       </FieldLabel>

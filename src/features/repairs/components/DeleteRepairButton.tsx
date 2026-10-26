@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { IconButton } from '@/components/ui/IconButton';
+import { DELETE_FAILED_MESSAGE } from '@/lib/forms';
 import { deleteRepairAction } from '../actions';
 
 interface DeleteRepairButtonProps {
@@ -21,9 +22,18 @@ export function DeleteRepairButton({ vehicleId, repairId, dateLabel }: DeleteRep
 
   const confirm = () =>
     startTransition(async () => {
-      const result = await deleteRepairAction(vehicleId, repairId);
-      setError(result.error);
-      if (!result.error) setOpen(false);
+      let result: { error?: string } | undefined;
+      try {
+        result = await deleteRepairAction(vehicleId, repairId);
+      } catch {
+        result = { error: DELETE_FAILED_MESSAGE };
+      }
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      // The card goes with this button; FocusAfterDelete then moves focus to the history heading
+      setOpen(false);
     });
 
   return (

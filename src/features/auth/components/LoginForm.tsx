@@ -9,7 +9,17 @@ import { login, type LoginState } from '../actions';
 const initialState: LoginState = { email: '' };
 
 export function LoginForm() {
-  const [state, formAction, pending] = useActionState(login, initialState);
+  const [state, formAction, pending] = useActionState(async (previous: LoginState, formData: FormData) => {
+    try {
+      // Nothing comes back on success: the action redirects to the app
+      return (await login(previous, formData)) ?? previous;
+    } catch {
+      return {
+        email: String(formData.get('email') ?? ''),
+        error: 'Δεν ήταν δυνατή η σύνδεση. Ελέγξτε το ίντερνετ και δοκιμάστε ξανά.',
+      };
+    }
+  }, initialState);
 
   return (
     <form action={formAction} className={`${cardClasses} flex flex-col gap-5 p-6 sm:p-8`}>

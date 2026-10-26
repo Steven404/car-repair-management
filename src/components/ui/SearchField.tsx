@@ -1,20 +1,35 @@
+'use client';
+
+import { useId, useRef, type ReactNode, type RefObject } from 'react';
 import { Search, X } from 'lucide-react';
-import type { ReactNode } from 'react';
 import { FieldLabel } from './FieldLabel';
 import { hintClasses } from './fieldStyles';
 
 interface SearchFieldProps {
-  id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   hint?: ReactNode;
+  /** For a parent that needs to put the cursor back in the field */
+  inputRef?: RefObject<HTMLInputElement | null>;
   className?: string;
 }
 
 /** A labelled search input with a magnifier, and a clear button once something is typed. */
-export function SearchField({ id, label, value, onChange, placeholder, hint, className = '' }: SearchFieldProps) {
+export function SearchField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  hint,
+  inputRef: givenRef,
+  className = '',
+}: SearchFieldProps) {
+  // Unique per instance: Next can keep a hidden copy of this page in the document
+  const id = useId();
+  const ownRef = useRef<HTMLInputElement>(null);
+  const inputRef = givenRef ?? ownRef;
   const hintId = hint ? `${id}-hint` : undefined;
 
   return (
@@ -23,6 +38,7 @@ export function SearchField({ id, label, value, onChange, placeholder, hint, cla
       <div className="relative flex items-center">
         <Search size={20} aria-hidden="true" className="pointer-events-none absolute left-3.5 text-muted" />
         <input
+          ref={inputRef}
           id={id}
           type="search"
           value={value}
@@ -37,7 +53,11 @@ export function SearchField({ id, label, value, onChange, placeholder, hint, cla
           <button
             type="button"
             aria-label="Καθαρισμός αναζήτησης"
-            onClick={() => onChange('')}
+            onClick={() => {
+              onChange('');
+              // The button goes once the field is empty; carry on from the field, not the top of the page
+              inputRef.current?.focus();
+            }}
             className="absolute right-1 flex size-11 cursor-pointer items-center justify-center rounded-small text-muted hover:bg-ground hover:text-fg"
           >
             <X size={18} aria-hidden="true" />

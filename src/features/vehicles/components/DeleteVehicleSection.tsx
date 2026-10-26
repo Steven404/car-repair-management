@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useId, useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cardClasses } from '@/components/ui/Card';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DELETE_FAILED_MESSAGE } from '@/lib/forms';
 import { deleteVehicleAction } from '../actions';
 
 interface DeleteVehicleSectionProps {
@@ -22,6 +23,7 @@ function consequence(title: string, repairCount: number): string {
 
 /** Below the edit form: deletes the car and its history, after asking. */
 export function DeleteVehicleSection({ vehicleId, title, repairCount }: DeleteVehicleSectionProps) {
+  const titleId = useId();
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
@@ -29,17 +31,21 @@ export function DeleteVehicleSection({ vehicleId, title, repairCount }: DeleteVe
   const confirm = () =>
     startTransition(async () => {
       // Redirects to the list when it works, so only a failure comes back
-      const result = await deleteVehicleAction(vehicleId);
-      setError(result.error);
+      try {
+        const result = await deleteVehicleAction(vehicleId);
+        setError(result?.error);
+      } catch {
+        setError(DELETE_FAILED_MESSAGE);
+      }
     });
 
   return (
     <section
-      aria-labelledby="delete-vehicle-title"
+      aria-labelledby={titleId}
       className={`${cardClasses} flex flex-wrap items-center justify-between gap-4 p-5 sm:px-7`}
     >
       <div className="flex max-w-xl flex-col gap-1">
-        <h2 id="delete-vehicle-title" className="text-[17px] font-bold">
+        <h2 id={titleId} className="text-[17px] font-bold">
           Διαγραφή οχήματος
         </h2>
         <p className="text-[15px] text-muted">

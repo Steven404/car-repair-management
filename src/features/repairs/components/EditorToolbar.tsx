@@ -3,41 +3,31 @@
 import type { Editor } from '@tiptap/react';
 import { useEditorState } from '@tiptap/react';
 import { List, ListOrdered, Redo2, Undo2 } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { Fragment, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 
-interface ToolbarButtonProps {
+type Chain = ReturnType<Editor['chain']>;
+
+interface ToolbarItem {
   label: string;
-  /** For toggles; leave out for undo and redo, which aren't on or off */
+  /** For toggles; left out for undo and redo, which aren't on or off */
   pressed?: boolean;
   disabled: boolean;
-  onPress: () => void;
+  command: (chain: Chain) => Chain;
   className?: string;
-  children: ReactNode;
+  content: ReactNode;
+  /** Draw a divider before this button */
+  groupStart?: boolean;
 }
 
-function ToolbarButton({ label, pressed, disabled, onPress, className = '', children }: ToolbarButtonProps) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      aria-pressed={pressed}
-      disabled={disabled}
-      // Keep the text selection in the editor: a press shouldn't move focus to the button
-      onMouseDown={(event) => event.preventDefault()}
-      onClick={onPress}
-      className={`flex size-11 cursor-pointer items-center justify-center rounded-small text-fg transition-colors hover:bg-ground disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent ${pressed ? 'bg-line hover:bg-line' : ''} ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Separator() {
-  return <span aria-hidden="true" className="mx-1.5 h-6 w-px bg-field" />;
-}
-
-/** The design's formatting bar. Ctrl/⌘+B, I and U work in the editor too. */
+/**
+ * The design's formatting bar. Ctrl/⌘+B, I and U work in the editor too.
+ * Keyboard: one Tab stop for the whole bar, then the arrow keys (and Home,
+ * End) move between buttons, as the ARIA toolbar pattern expects.
+ */
 export function EditorToolbar({ editor }: { editor: Editor | null }) {
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [current, setCurrent] = useState(0);
+
   const state = useEditorState({
     editor,
     selector: ({ editor }) =>
@@ -52,69 +42,104 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       },
   });
 
-  const run = (command: (chain: ReturnType<Editor['chain']>) => ReturnType<Editor['chain']>) => () => {
-    if (editor) command(editor.chain().focus()).run();
-  };
   // The state above only arrives with the editor's first change; the buttons work before that
   const off = !editor;
+  const items: ToolbarItem[] = [
+    {
+      label: 'Έντονα',
+      pressed: state?.bold ?? false,
+      disabled: off,
+      command: (c) => c.toggleBold(),
+      className: 'text-[17px] font-extrabold',
+      content: 'B',
+    },
+    {
+      label: 'Πλάγια',
+      pressed: state?.italic ?? false,
+      disabled: off,
+      command: (c) => c.toggleItalic(),
+      className: 'font-[Georgia,serif] text-lg italic',
+      content: 'I',
+    },
+    {
+      label: 'Υπογράμμιση',
+      pressed: state?.underline ?? false,
+      disabled: off,
+      command: (c) => c.toggleUnderline(),
+      className: 'text-[17px] font-semibold underline',
+      content: 'U',
+    },
+    {
+      label: 'Λίστα με κουκκίδες',
+      pressed: state?.bulletList ?? false,
+      disabled: off,
+      command: (c) => c.toggleBulletList(),
+      content: <List size={20} aria-hidden="true" />,
+      groupStart: true,
+    },
+    {
+      label: 'Αριθμημένη λίστα',
+      pressed: state?.orderedList ?? false,
+      disabled: off,
+      command: (c) => c.toggleOrderedList(),
+      content: <ListOrdered size={20} aria-hidden="true" />,
+    },
+    {
+      label: 'Αναίρεση',
+      disabled: off || !state?.canUndo,
+      command: (c) => c.undo(),
+      content: <Undo2 size={20} aria-hidden="true" />,
+      groupStart: true,
+    },
+    {
+      label: 'Επανάληψη',
+      disabled: off || !state?.canRedo,
+      command: (c) => c.redo(),
+      content: <Redo2 size={20} aria-hidden="true" />,
+    },
+  ];
+
+  // If the remembered button has become disabled (nothing left to undo), Tab lands on the first one
+  const tabStop = items[current]?.disabled ? 0 : current;
+
+  const moveFocus = (event: KeyboardEvent<HTMLDivElement>) => {
+    const buttons = [...(toolbarRef.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)') ?? [])];
+    const at = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    const target = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: buttons.length - 1 }[event.key];
+    if (at === -1 || target === undefined) return;
+    event.preventDefault();
+    buttons[(target + buttons.length) % buttons.length].focus();
+  };
 
   return (
     <div
+      ref={toolbarRef}
       role="toolbar"
       aria-label="Μορφοποίηση κειμένου"
+      onKeyDown={moveFocus}
       className="flex flex-wrap items-center gap-0.5 border-b border-line bg-surface-2 px-2 py-1.5"
     >
-      <ToolbarButton
-        label="Έντονα"
-        pressed={state?.bold ?? false}
-        disabled={off}
-        onPress={run((c) => c.toggleBold())}
-        className="text-[17px] font-extrabold"
-      >
-        B
-      </ToolbarButton>
-      <ToolbarButton
-        label="Πλάγια"
-        pressed={state?.italic ?? false}
-        disabled={off}
-        onPress={run((c) => c.toggleItalic())}
-        className="font-[Georgia,serif] text-lg italic"
-      >
-        I
-      </ToolbarButton>
-      <ToolbarButton
-        label="Υπογράμμιση"
-        pressed={state?.underline ?? false}
-        disabled={off}
-        onPress={run((c) => c.toggleUnderline())}
-        className="text-[17px] font-semibold underline"
-      >
-        U
-      </ToolbarButton>
-      <Separator />
-      <ToolbarButton
-        label="Λίστα με κουκκίδες"
-        pressed={state?.bulletList ?? false}
-        disabled={off}
-        onPress={run((c) => c.toggleBulletList())}
-      >
-        <List size={20} aria-hidden="true" />
-      </ToolbarButton>
-      <ToolbarButton
-        label="Αριθμημένη λίστα"
-        pressed={state?.orderedList ?? false}
-        disabled={off}
-        onPress={run((c) => c.toggleOrderedList())}
-      >
-        <ListOrdered size={20} aria-hidden="true" />
-      </ToolbarButton>
-      <Separator />
-      <ToolbarButton label="Αναίρεση" disabled={off || !state?.canUndo} onPress={run((c) => c.undo())}>
-        <Undo2 size={20} aria-hidden="true" />
-      </ToolbarButton>
-      <ToolbarButton label="Επανάληψη" disabled={off || !state?.canRedo} onPress={run((c) => c.redo())}>
-        <Redo2 size={20} aria-hidden="true" />
-      </ToolbarButton>
+      {items.map((item, index) => (
+        <Fragment key={item.label}>
+          {item.groupStart && <span aria-hidden="true" className="mx-1.5 h-6 w-px bg-field" />}
+          <button
+            type="button"
+            aria-label={item.label}
+            aria-pressed={item.pressed}
+            disabled={item.disabled}
+            tabIndex={index === tabStop ? 0 : -1}
+            onFocus={() => setCurrent(index)}
+            // Keep the text selection in the editor: a press shouldn't move focus to the button
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              if (editor) item.command(editor.chain().focus()).run();
+            }}
+            className={`flex size-11 cursor-pointer items-center justify-center rounded-small text-fg transition-colors hover:bg-ground disabled:cursor-default disabled:opacity-40 disabled:hover:bg-transparent ${item.pressed ? 'bg-line hover:bg-line' : ''} ${item.className ?? ''}`}
+          >
+            {item.content}
+          </button>
+        </Fragment>
+      ))}
     </div>
   );
 }
