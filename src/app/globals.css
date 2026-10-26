@@ -1,0 +1,169 @@
+@import 'tailwindcss';
+
+/* ── Design tokens ─────────────────────────────────────────────────
+   Taken from the design canvas. Tailwind's default palette is cleared so
+   every colour in the app comes from this list. Light theme only. */
+@theme {
+  --color-*: initial;
+  --color-ground: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-surface-2: #f9fafb;
+  --color-line: #e5e7eb;
+  --color-line-soft: #eef0f3;
+  --color-field: #d1d5db;
+  --color-fg: #16181d;
+  --color-fg-2: #374151;
+  --color-prose: #1f2329;
+  --color-muted: #5b6270;
+  --color-placeholder: #8a909c;
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1e3a8a;
+  --color-accent-soft: #eaf0fd;
+  --color-on-accent: #ffffff;
+  --color-diesel: #1f2937;
+  --color-danger: #b91c1c;
+  --color-danger-hover: #991b1b;
+  --color-danger-soft: #fef2f2;
+  --color-highlight: #fde68a;
+
+  --radius-card: 14px;
+  --radius-control: 10px;
+  --radius-small: 8px;
+  --radius-plate: 5px;
+
+  --shadow-card-hover: 0 8px 20px rgb(22 24 29 / 0.08);
+}
+
+/* next/font sets these variables on <html> (see layout.tsx) */
+@theme inline {
+  --font-sans: var(--font-commissioner), system-ui, sans-serif;
+  --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    /* The gutter stays reserved, so locking scroll for a dialog doesn't shift the page */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-ground font-sans text-fg antialiased;
+  }
+
+  ::placeholder {
+    color: var(--color-placeholder);
+    opacity: 1;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  mark {
+    color: inherit;
+  }
+}
+
+/* ── Dialog ────────────────────────────────────────────────────────
+   Native <dialog> (components/ui/Dialog.tsx). Enters with @starting-style;
+   exits on `[data-closing]` before Dialog.tsx calls close(), so the exit
+   plays in every browser. Laptop: centred, fades up. Phone: a bottom sheet. */
+.dialog {
+  width: min(480px, calc(100% - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  /* Tailwind's reset zeroes the margin the browser centres modals with */
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  color: var(--color-fg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: 0 24px 64px -24px rgb(22 24 29 / 0.35);
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+@starting-style {
+  .dialog[open] {
+    opacity: 0;
+    translate: 0 12px;
+  }
+}
+
+.dialog[data-closing] {
+  opacity: 0;
+  translate: 0 8px;
+  transition-duration: 0.16s;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.dialog::backdrop {
+  background-color: rgb(22 24 29 / 0.4);
+  opacity: 1;
+  transition: opacity 0.2s ease-out;
+}
+
+@starting-style {
+  .dialog[open]::backdrop {
+    opacity: 0;
+  }
+}
+
+.dialog[data-closing]::backdrop {
+  opacity: 0;
+  transition-duration: 0.16s;
+}
+
+.dialog-panel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 47.99rem) {
+  .dialog {
+    width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-bottom-width: 0;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+  }
+
+  @starting-style {
+    .dialog[open] {
+      opacity: 1;
+      translate: 0 100%;
+    }
+  }
+
+  .dialog[data-closing] {
+    opacity: 1;
+    translate: 0 100%;
+    transition-duration: 0.22s;
+  }
+
+  .dialog-panel {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialog,
+  .dialog::backdrop {
+    transition: none;
+  }
+}
+
+html:has(.dialog[open]) {
+  overflow: hidden;
+}

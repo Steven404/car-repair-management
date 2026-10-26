@@ -9,23 +9,23 @@ five screens: Login, Vehicles (list + search), New vehicle, Vehicle page, New re
 
 ## Decisions
 
-| Area             | Choice                                                         | Why                                                                                                    |
-| ---------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Framework        | Next.js 16, App Router                                         | One codebase; Server Components read data, Server Actions write it. No `app/api`, no Express.          |
-| Architecture     | Feature-based (`features/`), shared `components/ui` + `layout` | Each feature keeps its components, actions, queries and rules together. See Project structure.        |
-| Language         | TypeScript, strict                                             |                                                                                                        |
-| Database         | SQLite via libSQL: local file in dev, Turso in production      | Right size for one mechanic's data; Turso is reached over HTTP, so it works from Vercel functions.     |
-| ORM / migrations | Drizzle ORM + drizzle-kit, SQL migrations committed            | First-class Turso support; schema ports to Postgres if ever needed.                                    |
-| Passwords        | `bcryptjs`, cost 12                                            | Familiar; pure JS so nothing native to build on Vercel. Passwords over 72 bytes are rejected.         |
-| Sessions         | Database sessions in an `httpOnly` cookie                      | Revocable (logout really ends it), unlike a JWT.                                                       |
-| Rich text        | Tiptap 3 (StarterKit), stored as JSON, rendered on the server  | Only allowed nodes can ever render, so no HTML sanitising and no XSS from stored notes.                |
-| Validation       | Zod 4, on the server in every action                           |                                                                                                        |
-| Styling          | Tailwind CSS v4, design colours as `@theme` tokens             | Same setup as the portfolio.                                                                           |
-| Icons            | `lucide-react`                                                 | The design's icons are Lucide (wrench, log-out, search, plus, pencil, trash).                          |
-| Fonts            | Commissioner + Roboto Mono via `next/font`, `latin` + `greek`  | Without the Greek subset, Greek text falls back to another font.                                       |
-| Tests            | Vitest (logic, auth, data) + one Playwright end-to-end flow    |                                                                                                        |
-| Hosting (later)  | Vercel (app) + Turso (database), in matching EU regions        | Not set up in v1; nothing in v1 may need a writable disk at runtime.                                   |
-| Package manager  | pnpm                                                           |                                                                                                        |
+| Area             | Choice                                                         | Why                                                                                                |
+| ---------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Framework        | Next.js 16, App Router                                         | One codebase; Server Components read data, Server Actions write it. No `app/api`, no Express.      |
+| Architecture     | Feature-based (`features/`), shared `components/ui` + `layout` | Each feature keeps its components, actions, queries and rules together. See Project structure.     |
+| Language         | TypeScript, strict                                             |                                                                                                    |
+| Database         | SQLite via libSQL: local file in dev, Turso in production      | Right size for one mechanic's data; Turso is reached over HTTP, so it works from Vercel functions. |
+| ORM / migrations | Drizzle ORM + drizzle-kit, SQL migrations committed            | First-class Turso support; schema ports to Postgres if ever needed.                                |
+| Passwords        | `bcryptjs`, cost 12                                            | Familiar; pure JS so nothing native to build on Vercel. Passwords over 72 bytes are rejected.      |
+| Sessions         | Database sessions in an `httpOnly` cookie                      | Revocable (logout really ends it), unlike a JWT.                                                   |
+| Rich text        | Tiptap 3 (StarterKit), stored as JSON, rendered on the server  | Only allowed nodes can ever render, so no HTML sanitising and no XSS from stored notes.            |
+| Validation       | Zod 4, on the server in every action                           |                                                                                                    |
+| Styling          | Tailwind CSS v4, design colours as `@theme` tokens             | Same setup as the portfolio.                                                                       |
+| Icons            | `lucide-react`                                                 | The design's icons are Lucide (wrench, log-out, search, plus, pencil, trash).                      |
+| Fonts            | Commissioner + Roboto Mono via `next/font`, `latin` + `greek`  | Without the Greek subset, Greek text falls back to another font.                                   |
+| Tests            | Vitest (logic, auth, data) + one Playwright end-to-end flow    |                                                                                                    |
+| Hosting (later)  | Vercel (app) + Turso (database), in matching EU regions        | Not set up in v1; nothing in v1 may need a writable disk at runtime.                               |
+| Package manager  | pnpm                                                           |                                                                                                    |
 
 ## Scope
 
@@ -282,25 +282,25 @@ e2e/      Playwright
 
 ### Tokens (from the design)
 
-| Token          | Value     | Used for                                     |
-| -------------- | --------- | -------------------------------------------- |
-| `ground`       | `#F3F4F6` | page background, current-nav background      |
-| `surface`      | `#FFFFFF` | cards, inputs, header                        |
-| `surface-2`    | `#F9FAFB` | form footers, editor toolbar, card strips    |
-| `line`         | `#E5E7EB` | card borders                                 |
-| `line-soft`    | `#EEF0F3` | dividers inside cards                        |
-| `field`        | `#D1D5DB` | input and secondary-button borders           |
-| `fg`           | `#16181D` | text, logo tile                              |
-| `fg-2`         | `#374151` | secondary text                               |
-| `muted`        | `#5B6270` | hints, labels, meta                          |
-| `placeholder`  | `#8A909C` | placeholders                                 |
-| `accent`       | `#1D4ED8` | primary buttons, links, focus rings          |
-| `accent-hover` | `#1E3A8A` | hover on accent                              |
-| `accent-soft`  | `#EAF0FD` | latest repair's date block, petrol badge     |
-| `diesel`       | `#1F2937` | diesel badge                                 |
-| `danger`       | `#B91C1C` | required marks, errors, delete               |
-| `danger-soft`  | `#FEF2F2` | delete hover                                 |
-| `highlight`    | `#FDE68A` | search matches (new; not in the design)      |
+| Token          | Value     | Used for                                  |
+| -------------- | --------- | ----------------------------------------- |
+| `ground`       | `#F3F4F6` | page background, current-nav background   |
+| `surface`      | `#FFFFFF` | cards, inputs, header                     |
+| `surface-2`    | `#F9FAFB` | form footers, editor toolbar, card strips |
+| `line`         | `#E5E7EB` | card borders                              |
+| `line-soft`    | `#EEF0F3` | dividers inside cards                     |
+| `field`        | `#D1D5DB` | input and secondary-button borders        |
+| `fg`           | `#16181D` | text, logo tile                           |
+| `fg-2`         | `#374151` | secondary text                            |
+| `muted`        | `#5B6270` | hints, labels, meta                       |
+| `placeholder`  | `#8A909C` | placeholders                              |
+| `accent`       | `#1D4ED8` | primary buttons, links, focus rings       |
+| `accent-hover` | `#1E3A8A` | hover on accent                           |
+| `accent-soft`  | `#EAF0FD` | latest repair's date block, petrol badge  |
+| `diesel`       | `#1F2937` | diesel badge                              |
+| `danger`       | `#B91C1C` | required marks, errors, delete            |
+| `danger-soft`  | `#FEF2F2` | delete hover                              |
+| `highlight`    | `#FDE68A` | search matches (new; not in the design)   |
 
 Radii: 14px cards, 10px inputs and buttons, 8px nav and icon buttons, 5px plate. Heights: 48px inputs,
 46px buttons, 44px icon buttons (touch targets), 40px nav items. Content width 1280px (forms 920px).
@@ -322,13 +322,13 @@ block, as in the design.
 
 ## Environments
 
-| Environment         | Database                                          |
-| ------------------- | ------------------------------------------------- |
-| Local dev           | `file:./local.db`, seeded with the design's cars  |
-| Tests (Vitest)      | in-memory libSQL, migrations applied per run      |
-| Tests (Playwright)  | `file:./e2e.db`, reset before each run            |
-| Vercel previews     | separate Turso database (never production)        |
-| Production          | Turso                                             |
+| Environment        | Database                                         |
+| ------------------ | ------------------------------------------------ |
+| Local dev          | `file:./local.db`, seeded with the design's cars |
+| Tests (Vitest)     | in-memory libSQL, migrations applied per run     |
+| Tests (Playwright) | `file:./e2e.db`, reset before each run           |
+| Vercel previews    | separate Turso database (never production)       |
+| Production         | Turso                                            |
 
 Env vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (empty for local files). `.env.example` is committed;
 `.env*` files are not.
