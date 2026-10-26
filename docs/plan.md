@@ -384,7 +384,13 @@ Turso when hosting is set up.
 - Sessions: create, validate, expire, renew, delete; only the hash is stored.
 - Rate limit: locks after 5 failures per email and 20 per IP; a success clears the email's failures.
 - Data access: mechanic A can't read, edit or delete mechanic B's vehicles or repairs; deleting a vehicle
-  deletes its repairs; duplicate VIN / plate per mechanic is refused, across mechanics allowed.
+  deletes its repairs; duplicate VIN / plate per mechanic is refused, across mechanics allowed; a repair
+  can't be reached through the wrong car.
+- Repair notes: the server checks the editor's JSON against the editor's own schema (`getSchema` of the
+  same extensions): headings, images, links (`javascript:` included) and broken structure are refused,
+  unknown attributes dropped, the editor's trailing empty paragraph removed. Rendered to React elements,
+  never HTML, with text escaped.
+- Dates: "today" in Athens, also between midnight there and midnight UTC; the date never shifts on display.
 
 **Playwright** (against a production build):
 

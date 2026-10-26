@@ -2,13 +2,21 @@ import { SearchX } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/ButtonLink';
 import { EmptyState } from '@/components/ui/EmptyState';
 
+interface NotFoundStateProps {
+  title?: string;
+  description?: string;
+}
+
 /** The 404 message, for the root not-found page and the ones inside the app. */
-export function NotFoundState({ title = 'Η σελίδα δεν βρέθηκε' }: { title?: string }) {
+export function NotFoundState({
+  title = 'Η σελίδα δεν βρέθηκε',
+  description = 'Ο σύνδεσμος μπορεί να είναι λάθος ή το όχημα να έχει διαγραφεί.',
+}: NotFoundStateProps) {
   return (
     <EmptyState
       icon={<SearchX size={24} />}
       title={title}
-      description="Ο σύνδεσμος μπορεί να είναι λάθος ή το όχημα να έχει διαγραφεί."
+      description={description}
       action={
         <ButtonLink href="/vehicles" variant="secondary">
           Πίσω στα οχήματα

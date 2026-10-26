@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { requireUser } from '@/features/auth/current-user';
 import { db } from '@/lib/db/client';
 import { repairs, vehicles, type User } from '@/lib/db/schema';
+import { signInAs } from '@/test/auth';
 import { createTestUser, resetDatabase } from '@/test/db';
 import { vehicleInput } from '@/test/vehicles';
 import { deleteVehicle, insertVehicle, updateVehicle } from './mutations';
@@ -11,15 +11,6 @@ import { getVehicle, listVehicles } from './queries';
 // The queries and mutations get the mechanic from requireUser(); here it
 // returns whoever the test signs in as.
 vi.mock('@/features/auth/current-user', () => ({ requireUser: vi.fn(), getCurrentUser: vi.fn() }));
-
-function signInAs(user: User) {
-  vi.mocked(requireUser).mockResolvedValue({
-    id: user.id,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-  });
-}
 
 async function addVehicle(overrides: Parameters<typeof vehicleInput>[0] = {}): Promise<string> {
   const result = await insertVehicle(vehicleInput(overrides));

@@ -65,6 +65,54 @@
   }
 }
 
+/* ── Repair notes ──────────────────────────────────────────────────
+   Tiptap's output, on the vehicle page (RepairNotes) and, a little roomier,
+   in the editor (RepairEditor). Tailwind's reset strips list styles, and
+   Tiptap puts each list item's text in a paragraph. */
+.rich-text p {
+  margin: 0 0 8px;
+}
+
+.rich-text ul,
+.rich-text ol {
+  margin: 0 0 10px;
+  padding-left: 22px;
+}
+
+.rich-text ul {
+  list-style: disc;
+}
+
+.rich-text ol {
+  list-style: decimal;
+}
+
+.rich-text li {
+  margin: 2px 0;
+}
+
+.rich-text li > p {
+  margin: 0;
+}
+
+.rich-text > :last-child {
+  margin-bottom: 0;
+}
+
+.rich-text-editor p {
+  margin-bottom: 10px;
+}
+
+.rich-text-editor ul,
+.rich-text-editor ol {
+  margin-bottom: 12px;
+  padding-left: 24px;
+}
+
+.rich-text-editor li {
+  margin: 3px 0;
+}
+
 /* ── Dialog ────────────────────────────────────────────────────────
    Native <dialog> (components/ui/Dialog.tsx). Enters with @starting-style;
    exits on `[data-closing]` before Dialog.tsx calls close(), so the exit
