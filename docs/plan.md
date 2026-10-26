@@ -401,16 +401,20 @@ Turso when hosting is set up.
   never HTML, with text escaped.
 - Dates: "today" in Athens, also between midnight there and midnight UTC; the date never shifts on display.
 
-**Playwright** (against a production build):
+**Playwright** (against a production build, on port 3100 with its own `e2e.db`), on a laptop-sized and a
+phone-sized Chromium:
 
-- Log in → add a vehicle → add a repair with mileage and bold text → see it on the vehicle page →
-  log out → `/vehicles` redirects to login.
+- Log in → add a vehicle (VIN in lowercase, plate in Latin letters, displacement with a comma) → find it
+  from the list by its plate in Latin letters, highlighted → add a repair with mileage and bold text → see
+  it on the vehicle page → log out → `/vehicles` redirects to login.
 
-A GitHub Actions workflow runs lint, typecheck, Vitest and Playwright on every push and pull request.
+A GitHub Actions workflow runs lint, typecheck, the Prettier check, Vitest, the build and Playwright on
+every push to `main` and every pull request.
 
 ## Milestones
 
-Each one ends working and checked in the browser before the next starts.
+Each one ends working and checked in the browser before the next starts. All seven are done (October 2026);
+hosting is next.
 
 1. **Scaffold** — Next.js, TypeScript, Tailwind tokens, fonts, ESLint/Prettier, the folder structure;
    `components/ui` primitives and `components/layout` (AppHeader, PageContainer, PageHeader, FormCard).

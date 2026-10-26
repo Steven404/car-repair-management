@@ -17,7 +17,8 @@
     "user:add": "tsx scripts/user-add.ts",
     "user:set-password": "tsx scripts/user-set-password.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@next/env": "16.4.3",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

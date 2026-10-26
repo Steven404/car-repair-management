@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch or pull request makes an older run pointless
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Lint, types, tests and end-to-end
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # A local SQLite file is all the build needs; the unit tests and the
+      # end-to-end tests each set up their own (src/test/setup.ts, e2e/prepare-db.ts)
+      TURSO_DATABASE_URL: file:ci.db
+    steps:
+      - uses: actions/checkout@v5
+
+      # The pnpm version comes from package.json's packageManager field
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm format:check
+      - run: pnpm test
+
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+
+      - name: Keep the Playwright report when something failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

@@ -43,3 +43,25 @@ pnpm user:set-password
 | `pnpm db:seed`           | Empties the local database and fills it with sample data (local files only) |
 | `pnpm user:add`          | Adds a mechanic                                                             |
 | `pnpm user:set-password` | Sets a new password and signs that mechanic out everywhere                  |
+| `pnpm test:e2e`          | End-to-end tests (Playwright) against the production build                  |
+
+## End-to-end tests
+
+One flow, on a laptop-sized and a phone-sized Chromium: sign in, add a car, find it by its plate, add a
+repair with mileage and bold text, sign out ([e2e/repair-flow.spec.ts](e2e/repair-flow.spec.ts)). It runs
+against a production build on port 3100 with its own database, `e2e.db`, recreated each run with one test
+mechanic, so it never touches the dev server or `local.db`.
+
+```bash
+pnpm exec playwright install chromium   # once
+```
+
+```bash
+pnpm build && pnpm test:e2e
+```
+
+## CI
+
+[.github/workflows/ci.yml](.github/workflows/ci.yml) runs on every push to `main` and every pull request:
+lint, typecheck, Prettier check, unit tests, production build, then the end-to-end tests. When something
+fails, the Playwright report is kept as a download on the run for a week.
