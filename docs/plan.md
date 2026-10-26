@@ -141,9 +141,10 @@ VIN and plate are unique **per mechanic**, so two mechanics can both service the
   log people out on hover. It deletes the session row and the cookie.
 - **Access control:** every data function takes the mechanic's id and filters by it (repairs through their
   vehicle). A vehicle or repair that doesn't exist and one that belongs to someone else both give a 404.
-- **User scripts** (run with `tsx` against whichever database `.env` points to; passwords asked for, never
-  passed as arguments):
-  - `pnpm user:add` — email, first name, last name, password.
+- **User scripts** (run with `tsx` against the database in `.env.local`, or one set in the shell, which wins;
+  passwords asked for and typed hidden, never passed as arguments; piped input works too, one answer per
+  line):
+  - `pnpm user:add` — email, first name, last name, password (at least 10 characters, at most 72 bytes).
   - `pnpm user:set-password` — email, new password; also deletes that user's sessions.
 
 ## Routes
@@ -330,8 +331,14 @@ block, as in the design.
 | Vercel previews    | separate Turso database (never production)       |
 | Production         | Turso                                            |
 
-Env vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (empty for local files). `.env.example` is committed;
-`.env*` files are not.
+Env vars: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN` (empty for local files). `.env.example` is committed and
+copied to `.env.local` for development; other `.env*` files are not committed. drizzle-kit and the scripts
+load the same files Next.js does (`@next/env`).
+
+**Foreign keys** are enforced by the local libSQL client (checked: a repair for a missing vehicle is refused,
+deleting a vehicle cascades to its repairs). Turso isn't verified yet, so deleting a vehicle also deletes its
+repairs explicitly, in the same batch, instead of relying on the cascade alone. Check `PRAGMA foreign_keys` on
+Turso when hosting is set up.
 
 ## Tests
 
