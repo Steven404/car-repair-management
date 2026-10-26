@@ -33,6 +33,8 @@ pnpm user:set-password
 | `pnpm dev`               | Development server                                                          |
 | `pnpm build`             | Production build                                                            |
 | `pnpm lint`              | ESLint                                                                      |
+| `pnpm test`              | Unit tests (Vitest), each file on its own temporary database                |
+| `pnpm test:watch`        | The same, rerunning on changes                                              |
 | `pnpm typecheck`         | Generates route types, then runs `tsc`                                      |
 | `pnpm format`            | Prettier, writing changes                                                   |
 | `pnpm db:generate`       | A migration from changes to `src/lib/db/schema.ts`                          |

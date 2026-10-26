@@ -133,10 +133,17 @@ VIN and plate are unique **per mechanic**, so two mechanics can both service the
   clears that email's failures; old rows are deleted as part of normal writes.
 - **Session:** 32 random bytes, base64url, set as the `session` cookie (`httpOnly`, `Secure` in production,
   `SameSite=Lax`, `path=/`). The database stores only its SHA-256. Sessions last 30 days and are renewed to
-  30 days when used with less than 15 days left.
-- **Checks:** `getCurrentUser()` (cached per request with React `cache()`) is called by the `(app)` layout
-  **and** by every page and Server Action. `proxy.ts` only redirects visitors with no session cookie to
-  `/login`, for speed; it is never the only check.
+  30 days when used with less than 15 days left. The database decides when a session ends; the cookie itself
+  is kept for 400 days (the browser maximum), so renewing a session never needs a new cookie, which a page
+  render couldn't set.
+- **Checks:** `getCurrentUser()` / `requireUser()` (cached per request with React `cache()`) is called by
+  the header's name (inside `<Suspense>`) **and** by every query and Server Action. It calls `connection()`
+  before checking the session, because Next would otherwise try to prerender it per session for prefetching,
+  and a session check reads the clock and may renew. `proxy.ts` only redirects visitors with no session
+  cookie to `/login`, so they never get a page that would redirect anyway; it is never the only check. A
+  stale cookie gets past it and is redirected by `requireUser()` instead. The login page sends a
+  signed-in mechanic on to `/vehicles` itself: done in `proxy.ts`, a stale cookie would bounce between the
+  two pages.
 - **Logout** is a `<form>` with a POST action, not a link: Next prefetches links, and a GET logout would
   log people out on hover. It deletes the session row and the cookie.
 - **Access control:** every data function takes the mechanic's id and filters by it (repairs through their
@@ -272,7 +279,11 @@ e2e/      Playwright
 - Features import from `components/` and `lib/`. The only feature-to-feature import is `repairs → vehicles`
   (the repair form shows the vehicle's plate and name). Pages that need both, like the vehicle page,
   compose them in `app/`.
-- `queries.ts` files start with `import 'server-only'` and take the mechanic's id as their first argument.
+- `queries.ts` files start with `import 'server-only'`. Each exported query gets the mechanic from
+  `requireUser()` itself rather than taking an id, so no caller can ask for another mechanic's data (the
+  Data Access Layer pattern from the Next.js docs). Tests stand in for `requireUser()`.
+- A server component never imports a value from a `'use client'` file: it gets a client reference, not
+  the value. Shared class names live in plain modules (`components/layout/navStyles.ts`).
 - No barrel `index.ts` files: they mix server-only and client code in one import and make Next bundle more
   than a page needs.
 - The schema stays in one file (`lib/db/schema.ts`): tables reference each other and drizzle-kit

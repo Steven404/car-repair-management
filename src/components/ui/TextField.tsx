@@ -11,6 +11,8 @@ interface TextFieldProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'cl
   optional?: boolean;
   /** Monospaced, for VINs and plates */
   mono?: boolean;
+  /** False to leave out the red asterisk, where every field is required anyway (the login form) */
+  markRequired?: boolean;
   /** Classes for the wrapper, which is what a form layout sizes */
   className?: string;
 }
@@ -25,6 +27,7 @@ export function TextField({
   optional,
   mono,
   required,
+  markRequired = true,
   className = '',
   ...props
 }: TextFieldProps) {
@@ -34,7 +37,7 @@ export function TextField({
 
   return (
     <div className={`flex min-w-0 flex-col gap-1.5 ${className}`}>
-      <FieldLabel htmlFor={id} required={required} optional={optional}>
+      <FieldLabel htmlFor={id} required={required && markRequired} optional={optional}>
         {label}
       </FieldLabel>
       <input

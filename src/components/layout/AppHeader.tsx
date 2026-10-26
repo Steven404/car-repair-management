@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { Suspense, type ReactNode } from 'react';
 import { BrandMark } from './BrandMark';
-import { NavLink, navLinkClasses } from './NavLink';
+import { NavLink } from './NavLink';
+import { navItemActiveClasses, navItemClasses } from './navStyles';
 
 interface AppHeaderProps {
   /** The signed-in mechanic's name. It reads the session, so pass it wrapped in <Suspense>. */
@@ -22,9 +23,10 @@ export function AppHeader({ userName, actions }: AppHeaderProps) {
           </div>
         </div>
         <nav aria-label="Κύριο μενού" className="flex items-center gap-1">
+          {/* Every app page is under /vehicles, so the fallback can show it as current too */}
           <Suspense
             fallback={
-              <Link href="/vehicles" className={navLinkClasses}>
+              <Link href="/vehicles" className={`${navItemClasses} ${navItemActiveClasses}`}>
                 Οχήματα
               </Link>
             }
