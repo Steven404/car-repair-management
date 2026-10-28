@@ -1,6 +1,6 @@
 # Car Repair Management
 
-A web app for an individual mechanic to keep each customer car's details and its repair history. Greek UI.
+A web app for mechanics to keep each customer car's details and its repair history. Greek UI.
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS v4. The full plan is in [docs/plan.md](docs/plan.md).
 
