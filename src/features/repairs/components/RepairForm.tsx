@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { unstable_rethrow, useRouter } from 'next/navigation';
 import { startTransition, useActionState, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { FormCard, FormSection } from '@/components/layout/FormCard';
 import { Button } from '@/components/ui/Button';
@@ -49,7 +49,9 @@ export function RepairForm({ vehicleId, vehicleStrip, repair, defaultDate }: Rep
       next = repair
         ? await updateRepairAction(vehicleId, repair.id, previous, formData)
         : await createRepairAction(vehicleId, previous, formData);
-    } catch {
+    } catch (error) {
+      // A redirect (a session that has expired) also arrives as a rejection
+      unstable_rethrow(error);
       return { error: SAVE_FAILED_MESSAGE };
     }
     // Nothing comes back when the action redirected (a session that has expired)

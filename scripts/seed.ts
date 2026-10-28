@@ -14,10 +14,14 @@ import {
   type RichTextNode,
 } from '@/lib/db/schema';
 import { env } from '@/lib/env';
+import { ask } from './lib/prompt';
 import { runScript } from './lib/run';
 
-// pnpm db:seed — empties the LOCAL database and fills it with the design's
-// sample cars, for development. Refuses to run against anything but a file.
+// pnpm db:seed — empties the database and fills it with the design's sample
+// cars, for development. A local file is seeded straight away; a Turso database
+// (the Vercel dev one) only after its name is typed, so a wrong URL in the shell
+// can't wipe production:
+//   TURSO_DATABASE_URL=libsql://… TURSO_AUTH_TOKEN=… pnpm db:seed
 //
 // Sign in with:
 //   mechanic@example.test / seed-password-1   (Στέφανος Μιχελάκης, 8 cars)
@@ -264,9 +268,16 @@ async function insertVehicle(mechanicId: string, vehicle: SampleVehicle) {
   }
 }
 
-runScript('Seed the local database', async () => {
+/** The first part of a Turso host: car-repair-dev-myorg in libsql://car-repair-dev-myorg.aws-eu-west-1.turso.io */
+function remoteName(url: string) {
+  return new URL(url).hostname.split('.')[0];
+}
+
+runScript('Seed the database', async () => {
   if (!env.TURSO_DATABASE_URL.startsWith('file:')) {
-    throw new Error('The seed empties the database, so it only runs against a local file (TURSO_DATABASE_URL=file:…).');
+    const name = remoteName(env.TURSO_DATABASE_URL);
+    const answer = await ask(`This deletes everything in ${name}. Type ${name} to continue: `);
+    if (answer !== name) throw new Error('Not confirmed. Nothing was changed.');
   }
 
   // Children first, so no foreign key is left pointing at a deleted row

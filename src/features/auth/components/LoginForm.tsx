@@ -1,5 +1,6 @@
 'use client';
 
+import { unstable_rethrow } from 'next/navigation';
 import { useActionState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { cardClasses } from '@/components/ui/Card';
@@ -13,7 +14,10 @@ export function LoginForm() {
     try {
       // Nothing comes back on success: the action redirects to the app
       return (await login(previous, formData)) ?? previous;
-    } catch {
+    } catch (error) {
+      // A redirect also arrives here as a rejection: let Next follow it, or this
+      // message would sit in the page Next keeps mounted and greet the next logout
+      unstable_rethrow(error);
       return {
         email: String(formData.get('email') ?? ''),
         error: 'Δεν ήταν δυνατή η σύνδεση. Ελέγξτε το ίντερνετ και δοκιμάστε ξανά.',

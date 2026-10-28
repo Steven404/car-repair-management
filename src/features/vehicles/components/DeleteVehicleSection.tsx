@@ -1,5 +1,6 @@
 'use client';
 
+import { unstable_rethrow } from 'next/navigation';
 import { useId, useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -34,7 +35,9 @@ export function DeleteVehicleSection({ vehicleId, title, repairCount }: DeleteVe
       try {
         const result = await deleteVehicleAction(vehicleId);
         setError(result?.error);
-      } catch {
+      } catch (error) {
+        // The redirect to the list also arrives as a rejection
+        unstable_rethrow(error);
         setError(DELETE_FAILED_MESSAGE);
       }
     });
