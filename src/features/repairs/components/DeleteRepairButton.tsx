@@ -1,5 +1,6 @@
 'use client';
 
+import { unstable_rethrow } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -25,7 +26,9 @@ export function DeleteRepairButton({ vehicleId, repairId, dateLabel }: DeleteRep
       let result: { error?: string } | undefined;
       try {
         result = await deleteRepairAction(vehicleId, repairId);
-      } catch {
+      } catch (error) {
+        // A redirect (a session that has expired) also arrives as a rejection
+        unstable_rethrow(error);
         result = { error: DELETE_FAILED_MESSAGE };
       }
       if (result?.error) {
