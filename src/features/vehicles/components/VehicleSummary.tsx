@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { Pencil, Plus } from 'lucide-react';
+import { Pencil, Plus, UserRound } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/ButtonLink';
 import { cardClasses } from '@/components/ui/Card';
 import type { Vehicle } from '@/lib/db/schema';
@@ -7,7 +7,7 @@ import { engineLabel } from '../labels';
 import { FuelBadge } from './FuelBadge';
 import { PlateBadge } from './PlateBadge';
 
-/** The top of the vehicle page: the car, its plate, and what can be done next. */
+/** The top of the vehicle page: the car, its owner, its plate, and what can be done next. */
 export function VehicleSummary({ vehicle }: { vehicle: Vehicle }) {
   const titleId = useId();
   return (
@@ -17,6 +17,11 @@ export function VehicleSummary({ vehicle }: { vehicle: Vehicle }) {
     >
       <div className="flex flex-wrap items-center gap-6">
         <div className="flex flex-col gap-1">
+          <p className="mb-2 flex items-center gap-2 text-[15px] font-medium text-fg-2">
+            <UserRound size={16} className="shrink-0 text-muted" aria-hidden="true" />
+            <span className="sr-only">Ιδιοκτήτης: </span>
+            <span className="break-words">{vehicle.ownerName}</span>
+          </p>
           <span className="text-[13px] font-semibold tracking-[0.08em] text-muted uppercase">{vehicle.brand}</span>
           <h1 id={titleId} className="text-[28px] leading-[1.1] font-bold tracking-[-0.01em] sm:text-[34px]">
             {vehicle.model}

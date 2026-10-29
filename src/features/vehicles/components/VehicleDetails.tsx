@@ -16,7 +16,7 @@ function Detail({ label, mono, children }: { label: string; mono?: boolean; chil
 
 const row = 'flex gap-4 border-b border-line-soft py-3 last:border-b-0';
 
-/** The "Στοιχεία οχήματος" panel: everything stored about the car, the VIN included. */
+/** The "Στοιχεία οχήματος" panel: everything stored about the car, the VIN included. The owner sits in the summary. */
 export function VehicleDetails({ vehicle, className = '' }: { vehicle: Vehicle; className?: string }) {
   const titleId = useId();
   return (
@@ -42,9 +42,6 @@ export function VehicleDetails({ vehicle, className = '' }: { vehicle: Vehicle; 
         <div className={row}>
           <Detail label="Μηχανή">{engineLabel(vehicle)}</Detail>
           <Detail label="Καύσιμο">{FUEL_LABELS[vehicle.fuel]}</Detail>
-        </div>
-        <div className={row}>
-          <Detail label="Ιδιοκτήτης">{vehicle.ownerName}</Detail>
         </div>
       </dl>
     </section>
