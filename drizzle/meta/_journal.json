@@ -8,6 +8,13 @@
       "when": 1793041870273,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793300271265,
+      "tag": "0001_trusted_devices",
+      "breakpoints": true
     }
   ]
 }

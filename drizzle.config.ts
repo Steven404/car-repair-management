@@ -1,8 +1,8 @@
 import { loadEnvConfig } from '@next/env';
 import { defineConfig } from 'drizzle-kit';
 
-// The same .env files Next.js reads, so drizzle-kit targets the same database as the app
-loadEnvConfig(process.cwd());
+// The same .env files `next dev` reads (never .env.production*), so drizzle-kit targets the dev database
+loadEnvConfig(process.cwd(), true);
 
 export default defineConfig({
   dialect: 'turso',

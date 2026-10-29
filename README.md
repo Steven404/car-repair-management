@@ -28,34 +28,36 @@ pnpm user:add
 pnpm user:set-password
 ```
 
-| Script                   | Does                                                                     |
-| ------------------------ | ------------------------------------------------------------------------ |
-| `pnpm dev`               | Development server                                                       |
-| `pnpm build`             | Production build                                                         |
-| `pnpm lint`              | ESLint                                                                   |
-| `pnpm test`              | Unit tests (Vitest), each file on its own temporary database             |
-| `pnpm test:watch`        | The same, rerunning on changes                                           |
-| `pnpm typecheck`         | Generates route types, then runs `tsc`                                   |
-| `pnpm format`            | Prettier, writing changes                                                |
-| `pnpm db:generate`       | A migration from changes to `src/lib/db/schema.ts`                       |
-| `pnpm db:migrate`        | Applies pending migrations                                               |
-| `pnpm db:studio`         | Drizzle Studio, to browse the database                                   |
-| `pnpm db:seed`           | Empties the database and fills it with sample data (asks first on Turso) |
-| `pnpm user:add`          | Adds a mechanic                                                          |
-| `pnpm user:set-password` | Sets a new password and signs that mechanic out everywhere               |
-| `pnpm test:e2e`          | End-to-end tests (Playwright) against the production build               |
+| Script                   | Does                                                                  |
+| ------------------------ | --------------------------------------------------------------------- |
+| `pnpm dev`               | Development server                                                    |
+| `pnpm build`             | Production build                                                      |
+| `pnpm lint`              | ESLint                                                                |
+| `pnpm test`              | Unit tests (Vitest), each file on its own temporary database          |
+| `pnpm test:watch`        | The same, rerunning on changes                                        |
+| `pnpm typecheck`         | Generates route types, then runs `tsc`                                |
+| `pnpm format`            | Prettier, writing changes                                             |
+| `pnpm db:generate`       | A migration from changes to `src/lib/db/schema.ts`                    |
+| `pnpm db:migrate`        | Applies pending migrations                                            |
+| `pnpm db:studio`         | Drizzle Studio, to browse the database                                |
+| `pnpm db:seed`           | Empties the database and fills it with sample data (guarded on Turso) |
+| `pnpm user:add`          | Adds a mechanic                                                       |
+| `pnpm user:set-password` | Sets a new password and signs that mechanic out everywhere            |
+| `pnpm test:e2e`          | End-to-end tests (Playwright) against the production build            |
 
 ## Dev deployment
 
 The `dev` branch deploys to Vercel, on its own Turso database (never production). Set its URL and token in
-the shell to migrate and seed it; the seed asks you to type the database's name before it deletes anything:
+the shell to migrate and seed it. The seed also needs `SEED_REMOTE_DB` set to the database's name, a terminal
+(not piped input), and the name typed again before it deletes anything; it refuses names containing `prod`, and
+prints random passwords for the seeded mechanics once instead of the local ones:
 
 ```bash
 TURSO_DATABASE_URL="libsql://…" TURSO_AUTH_TOKEN="…" pnpm db:migrate
 ```
 
 ```bash
-TURSO_DATABASE_URL="libsql://…" TURSO_AUTH_TOKEN="…" pnpm db:seed
+SEED_REMOTE_DB="<name>" TURSO_DATABASE_URL="libsql://<name>…" TURSO_AUTH_TOKEN="…" pnpm db:seed
 ```
 
 ## End-to-end tests

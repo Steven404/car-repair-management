@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/lib/db/client';
-import { sessions, users, type User } from '@/lib/db/schema';
+import { sessions, trustedDevices, users, type User } from '@/lib/db/schema';
 import { hashPassword } from './password';
 
 // Creating users and resetting passwords, for the scripts in `scripts/`: there
@@ -36,13 +36,15 @@ export async function createUser(input: NewUser): Promise<User> {
   return user;
 }
 
-/** Sets a new password and signs the user out everywhere. */
+/** Sets a new password, signs the user out everywhere and forgets their trusted devices. */
 export async function setUserPassword(email: string, password: string): Promise<{ user: User; sessionsEnded: number }> {
   const user = await findUserByEmail(email);
   if (!user) throw new Error(`No user with the email ${normalizeEmail(email)}.`);
 
   const passwordHash = await hashPassword(password);
   await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+  // Whoever had the old password may have had the devices too
+  await db.delete(trustedDevices).where(eq(trustedDevices.userId, user.id));
   const ended = await db.delete(sessions).where(eq(sessions.userId, user.id)).returning({ id: sessions.id });
   return { user, sessionsEnded: ended.length };
 }
