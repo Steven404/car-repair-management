@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '@/lib/db/client';
-import { sessions } from '@/lib/db/schema';
+import { sessions, trustedDevices } from '@/lib/db/schema';
 import { createTestUser, resetDatabase, TEST_PASSWORD } from '@/test/db';
 import { verifyPassword } from './password';
 import { createSession } from './session';
+import { createTrustedDevice } from './trusted-device';
 import { createUser, findUserByEmail, setUserPassword } from './users';
 
 const newUser = { firstName: 'Μαρία', lastName: 'Παππά', password: TEST_PASSWORD };
@@ -47,6 +48,17 @@ describe('setUserPassword', () => {
     expect(await db.$count(sessions)).toBe(0);
     expect(await verifyPassword('another-password', updated!.passwordHash)).toBe(true);
     expect(await verifyPassword(TEST_PASSWORD, updated!.passwordHash)).toBe(false);
+  });
+
+  it("forgets the user's trusted devices, and only theirs", async () => {
+    const user = await createTestUser();
+    const other = await createTestUser();
+    await createTrustedDevice(user.id);
+    await createTrustedDevice(other.id);
+
+    await setUserPassword(user.email, 'another-password');
+    const left = await db.select({ userId: trustedDevices.userId }).from(trustedDevices);
+    expect(left).toEqual([{ userId: other.id }]);
   });
 
   it('says so when no one has the email', async () => {

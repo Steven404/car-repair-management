@@ -15,3 +15,19 @@ export const SESSION_COOKIE_OPTIONS = {
   path: '/',
   maxAge: 400 * 24 * 60 * 60,
 } as const;
+
+export const DEVICE_COOKIE = 'trusted_device';
+
+/**
+ * Marks a browser that has signed this mechanic in before (see
+ * trusted-device.ts). Logout leaves it alone on purpose: it's the proof that
+ * lets the real mechanic through while a stranger hammers their email, and it
+ * grants nothing by itself, only a different rate limit.
+ */
+export const DEVICE_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 365 * 24 * 60 * 60,
+} as const;

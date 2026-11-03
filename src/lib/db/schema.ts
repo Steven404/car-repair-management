@@ -42,18 +42,41 @@ export const sessions = sqliteTable(
   (table) => [index('sessions_user_id_idx').on(table.userId)]
 );
 
-/** Failed logins only, for rate limiting */
+/**
+ * Browsers that have signed a mechanic in before, for rate limiting: a login
+ * carrying one is limited per device instead of per email, so a stranger who
+ * knows the email can't lock the mechanic out (see rate-limit.ts).
+ */
+export const trustedDevices = sqliteTable(
+  'trusted_devices',
+  {
+    id: id(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** SHA-256 of the cookie's token, never the token itself */
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+    createdAt: createdAt(),
+  },
+  (table) => [index('trusted_devices_user_id_idx').on(table.userId)]
+);
+
+/** Login attempts, for rate limiting; a successful login removes its own failures */
 export const loginAttempts = sqliteTable(
   'login_attempts',
   {
     id: integer('id').primaryKey({ autoIncrement: true }),
     email: text('email').notNull(),
     ip: text('ip').notNull(),
+    /** The trusted device the attempt came from, if it carried a valid cookie for this email's user. No foreign key: rows are short-lived. */
+    deviceId: text('device_id'),
     attemptedAt: integer('attempted_at', { mode: 'timestamp_ms' }).notNull(),
   },
   (table) => [
     index('login_attempts_email_idx').on(table.email, table.attemptedAt),
     index('login_attempts_ip_idx').on(table.ip, table.attemptedAt),
+    index('login_attempts_device_idx').on(table.deviceId, table.attemptedAt),
   ]
 );
 

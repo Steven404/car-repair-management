@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // A stale nested clone of the repo.
+    'car-repair-management/**',
   ]),
 ]);
 

@@ -1,4 +1,5 @@
 import './lib/load-env';
+import { randomBytes } from 'node:crypto';
 import { createUser } from '@/features/auth/users';
 import { normalizePlate } from '@/features/vehicles/utils/plate';
 import { normalizeVin } from '@/features/vehicles/utils/vin';
@@ -7,6 +8,7 @@ import {
   loginAttempts,
   repairs,
   sessions,
+  trustedDevices,
   users,
   vehicles,
   type Fuel,
@@ -18,15 +20,17 @@ import { ask } from './lib/prompt';
 import { runScript } from './lib/run';
 
 // pnpm db:seed — empties the database and fills it with the design's sample
-// cars, for development. A local file is seeded straight away; a Turso database
-// (the Vercel dev one) only after its name is typed, so a wrong URL in the shell
-// can't wipe production:
-//   TURSO_DATABASE_URL=libsql://… TURSO_AUTH_TOKEN=… pnpm db:seed
-//
-// Sign in with:
+// cars, for development. A local file is seeded straight away, with these
+// sign-ins:
 //   mechanic@example.test / seed-password-1   (Στέφανος Μιχελάκης, 8 cars)
 //   other@example.test    / seed-password-2   (a second mechanic: 1 car, the same Golf,
 //                                              to check mechanics can't see each other's data)
+//
+// A Turso database (the Vercel dev one) is seeded only from a terminal, with
+// SEED_REMOTE_DB set to its name and that name typed again, and never if the
+// name contains "prod". Those passwords are public, so there each mechanic gets
+// a random one, printed once at the end:
+//   SEED_REMOTE_DB=<name> TURSO_DATABASE_URL=libsql://<name>… TURSO_AUTH_TOKEN=… pnpm db:seed
 
 const MECHANICS = [
   { email: 'mechanic@example.test', password: 'seed-password-1', firstName: 'Στέφανος', lastName: 'Μιχελάκης' },
@@ -273,20 +277,40 @@ function remoteName(url: string) {
   return new URL(url).hostname.split('.')[0];
 }
 
-runScript('Seed the database', async () => {
-  if (!env.TURSO_DATABASE_URL.startsWith('file:')) {
-    const name = remoteName(env.TURSO_DATABASE_URL);
-    const answer = await ask(`This deletes everything in ${name}. Type ${name} to continue: `);
-    if (answer !== name) throw new Error('Not confirmed. Nothing was changed.');
+/** Stops a remote seed unless it was asked for twice (the env var, then the typed name) from a terminal. */
+async function confirmRemote(url: string) {
+  const name = remoteName(url);
+  if (/prod/i.test(name)) throw new Error(`${name} looks like a production database. Refusing to seed it.`);
+  if (process.env.SEED_REMOTE_DB !== name) {
+    throw new Error(`Seeding a Turso database needs SEED_REMOTE_DB=${name} in the environment. Nothing was changed.`);
   }
+  if (!process.stdin.isTTY) throw new Error('Seeding a Turso database needs a terminal, not piped input.');
+
+  const answer = await ask(`This deletes everything in ${name}. Type ${name} to continue: `);
+  if (answer !== name) throw new Error('Not confirmed. Nothing was changed.');
+}
+
+runScript('Seed the database', async () => {
+  const remote = !env.TURSO_DATABASE_URL.startsWith('file:');
+  if (remote) await confirmRemote(env.TURSO_DATABASE_URL);
+
+  // The committed passwords only for a local file; a remote database gets its own
+  const mechanics = MECHANICS.map((mechanic) =>
+    remote ? { ...mechanic, password: randomBytes(18).toString('base64url') } : mechanic
+  );
 
   // Children first, so no foreign key is left pointing at a deleted row
-  for (const table of [repairs, vehicles, sessions, loginAttempts, users]) await db.delete(table);
+  for (const table of [repairs, vehicles, sessions, trustedDevices, loginAttempts, users]) await db.delete(table);
 
-  const [mechanic, other] = await Promise.all(MECHANICS.map((mechanic) => createUser(mechanic)));
+  const [mechanic, other] = await Promise.all(mechanics.map((mechanic) => createUser(mechanic)));
   for (const vehicle of VEHICLES) await insertVehicle(mechanic.id, vehicle);
   await insertVehicle(other.id, { ...GOLF, owner: 'Παναγιώτης Σταύρου', repairs: GOLF.repairs.slice(0, 1) });
 
   const repairCount = VEHICLES.reduce((sum, vehicle) => sum + vehicle.repairs.length, 0) + 1;
-  console.log(`✓ ${MECHANICS.length} mechanics, ${VEHICLES.length + 1} vehicles, ${repairCount} repairs`);
+  console.log(`✓ ${mechanics.length} mechanics, ${VEHICLES.length + 1} vehicles, ${repairCount} repairs`);
+
+  if (remote) {
+    console.log('\nSign-ins (shown once):');
+    for (const { email, password } of mechanics) console.log(`  ${email} / ${password}`);
+  }
 });
